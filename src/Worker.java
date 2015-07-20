@@ -35,6 +35,7 @@ public class Worker {
 			files = getJPGs(currDir);
 			grabTakenDatesAndQueueFiles();
 			printFilenames();
+			moveAllFiles();
 		}
 		System.out.println("breakpoint");
 	}
@@ -90,6 +91,19 @@ public class Worker {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+		}
+	}
+	
+	public static void moveAllFiles(){
+		for(QueueFile qf : fileQueue){
+			File image = qf.getImage();
+			File destDir = qf.getDestDir();
+			File destImage = new File(destDir.getAbsolutePath() + "\\" + image.getName());
+			
+			if(!destDir.exists()){
+				destDir.mkdirs();
+			}
+			image.renameTo(destImage);
 		}
 	}
 	
