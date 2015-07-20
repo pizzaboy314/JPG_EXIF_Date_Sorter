@@ -1,24 +1,61 @@
 import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 import javax.swing.JFileChooser;
 
 import org.apache.commons.io.FilenameUtils;
 
 import com.drew.imaging.ImageMetadataReader;
+import com.drew.imaging.ImageProcessingException;
+import com.drew.metadata.Directory;
+import com.drew.metadata.Metadata;
+import com.drew.metadata.Tag;
+import com.drew.metadata.exif.ExifSubIFDDirectory;
 
 
 public class Worker {
+	private static SimpleDateFormat dateFormat;
 	private static JFileChooser fc;
 	public static ArrayList<File> files;
+	public static ArrayList<File> dirs;
 	public static String find;
 	public static String replace;
 	
 	public static void main(String[] args) {
+		dateFormat = new SimpleDateFormat("yyyy_MM_dd");
 		File currDir = null;
 		currDir = getPath();
-		files = getJPGs(currDir);
-		printFilenames();
+		if(currDir == null){
+			System.exit(0);
+		} else {
+			files = getJPGs(currDir);
+//			printFilenames();
+			
+		}
+		
+		for(File f : files){
+			try {
+				Metadata metadata = ImageMetadataReader.readMetadata(f);
+				for (Directory directory : metadata.getDirectories()){
+					for (Tag tag : directory.getTags()) {
+						if(tag.toString().contains("Date/Time Original") && tag.toString().contains("Exif")){
+							Date date = directory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL);
+							System.out.println(f.getName() + ": " + dateFormat.format(date));
+//							System.out.println(dateFormat.format(date));
+						}
+				    }
+					
+				}
+			} catch (ImageProcessingException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+//			System.out.println("DO NOTHING");
+		}
 		
 //		ImageMetadataReader test;
 	}
