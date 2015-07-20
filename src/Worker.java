@@ -19,45 +19,24 @@ import com.drew.metadata.exif.ExifSubIFDDirectory;
 public class Worker {
 	private static SimpleDateFormat dateFormat;
 	private static JFileChooser fc;
+	public static File currDir;
 	public static ArrayList<File> files;
-	public static ArrayList<File> dirs;
+	public static ArrayList<QueueFile> fileQueue;
 	public static String find;
 	public static String replace;
 	
 	public static void main(String[] args) {
 		dateFormat = new SimpleDateFormat("yyyy_MM_dd");
-		File currDir = null;
+		currDir = null;
 		currDir = getPath();
 		if(currDir == null){
 			System.exit(0);
 		} else {
 			files = getJPGs(currDir);
-//			printFilenames();
-			
+			grabTakenDatesAndQueueFiles();
+			printFilenames();
 		}
-		
-		for(File f : files){
-			try {
-				Metadata metadata = ImageMetadataReader.readMetadata(f);
-				for (Directory directory : metadata.getDirectories()){
-					for (Tag tag : directory.getTags()) {
-						if(tag.toString().contains("Date/Time Original") && tag.toString().contains("Exif")){
-							Date date = directory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL);
-							System.out.println(f.getName() + ": " + dateFormat.format(date));
-//							System.out.println(dateFormat.format(date));
-						}
-				    }
-					
-				}
-			} catch (ImageProcessingException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-//			System.out.println("DO NOTHING");
-		}
-		
-//		ImageMetadataReader test;
+		System.out.println("breakpoint");
 	}
 	
 	public static File getPath(){
@@ -88,10 +67,35 @@ public class Worker {
 		
 		return list;
 	}
-	public static void printFilenames(){
+	
+	public static void grabTakenDatesAndQueueFiles(){
+		fileQueue = new ArrayList<QueueFile>();
 		for(File f : files){
-			System.out.println(f.getName());
-			
+			try {
+				Metadata metadata = ImageMetadataReader.readMetadata(f);
+				for (Directory directory : metadata.getDirectories()){
+					for (Tag tag : directory.getTags()) {
+						if(tag.toString().contains("Date/Time Original") && tag.toString().contains("Exif")){
+							Date date = directory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL);
+							
+							QueueFile qf = new QueueFile(f, dateFormat.format(date));
+							fileQueue.add(qf);
+//							System.out.println(dateFormat.format(date));
+						}
+				    }
+					
+				}
+			} catch (ImageProcessingException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public static void printFilenames(){
+		for(QueueFile qf : fileQueue){
+			System.out.println(qf.getImage().getName() + ": " + qf.getDestDir().getName());
 		}
 	}
 
