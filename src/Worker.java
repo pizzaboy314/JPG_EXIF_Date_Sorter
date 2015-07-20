@@ -1,10 +1,16 @@
+import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
+import javax.swing.BoxLayout;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
 import org.apache.commons.io.FilenameUtils;
 
@@ -30,14 +36,16 @@ public class Worker {
 		currDir = null;
 		currDir = getPath();
 		if(currDir == null){
-			System.exit(0);
+			System.exit(1);
 		} else {
 			files = getJPGs(currDir);
 			grabTakenDatesAndQueueFiles();
-			printFilenames();
+//			printFilenames();
 			moveAllFiles();
 		}
-		System.out.println("breakpoint");
+		
+//		System.out.println("breakpoint");
+		System.exit(0);
 	}
 	
 	public static File getPath(){
@@ -81,7 +89,6 @@ public class Worker {
 							
 							QueueFile qf = new QueueFile(f, dateFormat.format(date));
 							fileQueue.add(qf);
-//							System.out.println(dateFormat.format(date));
 						}
 				    }
 					
@@ -95,7 +102,37 @@ public class Worker {
 	}
 	
 	public static void moveAllFiles(){
+		JFrame frame = new JFrame("Sorting JPGs...");
+		frame.setPreferredSize(new Dimension(300,120));
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		
+		JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		
+//		JLabel label2 = new JLabel();
+//		label2.setPreferredSize(new Dimension(250,40));
+//		label2.setHorizontalAlignment(JLabel.CENTER);
+//		label2.setText("High resolution images will be saved in:");
+//		panel.add(label2);
+//		
+//		JLabel label3 = new JLabel();
+//		label3.setPreferredSize(new Dimension(250,40));
+//		label3.setHorizontalAlignment(JLabel.CENTER);
+//		label3.setText("REMOVE");
+//		panel.add(label3);
+		
+		JLabel label1 = new JLabel();
+		label1.setPreferredSize(new Dimension(200,40));
+		label1.setHorizontalAlignment(JLabel.CENTER);
+		panel.add(label1);
+		
+		frame.add(panel);
+		frame.pack();
+		frame.setLocationRelativeTo(null);
+		frame.setVisible(true);
+		
 		for(QueueFile qf : fileQueue){
+			label1.setText("Moving JPG " + (fileQueue.indexOf(qf)+1) + " of " + fileQueue.size());
 			File image = qf.getImage();
 			File destDir = qf.getDestDir();
 			File destImage = new File(destDir.getAbsolutePath() + "\\" + image.getName());
@@ -105,6 +142,8 @@ public class Worker {
 			}
 			image.renameTo(destImage);
 		}
+		JOptionPane.showMessageDialog(null, "Finished!", "Finished", JOptionPane.PLAIN_MESSAGE);
+		frame.setVisible(false);
 	}
 	
 	public static void printFilenames(){
